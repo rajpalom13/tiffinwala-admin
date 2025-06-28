@@ -3,6 +3,17 @@ import axios from "axios";
 const BASE_BANNER_URL = "https://api.tiffinwala.services/banner";
 const BASE_COUPON_URL = "https://api.tiffinwala.services/coupon";
 
+export async function sendNotification(payload: {
+  title: string;
+  body: string;
+}) {
+  const res = await axios.post(
+    "https://api.tiffinwala.services/notification/send",
+    payload
+  );
+  return res.data;
+}
+
 /** BANNERS **/
 
 export async function uploadBanner(file: File) {
