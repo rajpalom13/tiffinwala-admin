@@ -5,6 +5,7 @@ import {
   Calendar,
   Percent,
   Trash2,
+  IndianRupee,
 } from "lucide-react";
 import { Coupon } from "../types";
 import {
@@ -18,8 +19,9 @@ export const CouponManager: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     code: "",
-    discount: 0,
+    discount: "",
     minOrder: 0,
+    maxValue: 0,
     expiryDate: "",
   });
 
@@ -29,7 +31,7 @@ export const CouponManager: React.FC = () => {
 
   const fetchCoupons = async () => {
     const res: any = await getAllCoupons();
-    if (res?.status) {
+    if (res?.status && Array.isArray(res.data)) {
       setCoupons(res.data);
     }
   };
@@ -37,10 +39,20 @@ export const CouponManager: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Guarantee discount is string | number (not undefined)
+    const discountValue =
+      formData.discount === ""
+        ? 0
+        : isNaN(Number(formData.discount))
+          ? formData.discount
+          : Number(formData.discount);
+
     const payload = {
       code: formData.code.toUpperCase(),
-      discount: formData.discount,
+      discount: discountValue,
       minOrder: formData.minOrder,
+      maxValue:
+        formData.maxValue > 0 ? formData.maxValue : undefined,
       expiryDate: new Date(formData.expiryDate),
     };
 
@@ -50,8 +62,9 @@ export const CouponManager: React.FC = () => {
         setShowForm(false);
         setFormData({
           code: "",
-          discount: 0,
+          discount: "",
           minOrder: 0,
+          maxValue: 0,
           expiryDate: "",
         });
         fetchCoupons();
@@ -132,24 +145,45 @@ export const CouponManager: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Discount Percentage (%)
+                    Discount
                   </label>
                   <div className="relative">
                     <input
-                      type="number"
-                      min="1"
-                      max="100"
+                      type="text"
                       value={formData.discount}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          discount: parseInt(e.target.value),
+                          discount: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                      placeholder="e.g. 20 or FLAT50"
                       required
                     />
                     <Percent className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Max Discount (₹)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.maxValue}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          maxValue: parseInt(e.target.value) || 0,
+                        })
+                      }
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                      placeholder="Optional max discount"
+                    />
+                    <IndianRupee className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   </div>
                 </div>
 
@@ -164,10 +198,10 @@ export const CouponManager: React.FC = () => {
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        minOrder: parseInt(e.target.value),
+                        minOrder: parseInt(e.target.value) || 0,
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   />
                 </div>
 
@@ -185,7 +219,7 @@ export const CouponManager: React.FC = () => {
                       })
                     }
                     min={new Date().toISOString().split("T")[0]}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                     required
                   />
                 </div>
@@ -244,11 +278,23 @@ export const CouponManager: React.FC = () => {
                     <h3 className="font-semibold text-gray-900 text-lg">
                       {coupon.code}
                     </h3>
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <div className="flex items-center flex-wrap gap-2 text-sm text-gray-600">
                       <span className="flex items-center space-x-1">
                         <Percent className="w-3 h-3" />
-                        <span>{coupon.discount}% off</span>
+                        <span>
+                          {coupon.discount}
+                          {typeof coupon.discount === "number" ? "%" : ""}
+                          {" off"}
+                        </span>
                       </span>
+
+                      {coupon.maxValue !== undefined &&
+                        coupon.maxValue > 0 && (
+                          <span className="flex items-center space-x-1">
+                            <IndianRupee className="w-3 h-3 text-green-600" />
+                            <span>Max ₹{coupon.maxValue}</span>
+                          </span>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -263,9 +309,7 @@ export const CouponManager: React.FC = () => {
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">
-                    Min. Order Value:
-                  </span>
+                  <span className="text-gray-600">Min. Order Value:</span>
                   <span className="font-medium">
                     ₹{coupon.minOrder}
                   </span>

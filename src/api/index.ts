@@ -2,6 +2,7 @@ import axios from "axios";
 
 const BASE_BANNER_URL = "https://api.tiffinwala.services/banner";
 const BASE_COUPON_URL = "https://api.tiffinwala.services/coupon";
+const BASE_POINTS_URL = "https://api.tiffinwala.services/points";
 
 export async function sendNotification(payload: {
   title: string;
@@ -12,6 +13,27 @@ export async function sendNotification(payload: {
     payload
   );
   return res.data;
+}
+
+/** POINTS **/
+
+export async function getAllPointsRanges() {
+  const { data } = await axios.get(BASE_POINTS_URL);
+  return data;
+}
+
+export async function createPointsRange(payload: {
+  lower: number;
+  upper: number;
+  loyaltyPoints: number;
+}) {
+  const { data } = await axios.post(BASE_POINTS_URL, payload);
+  return data;
+}
+
+export async function deletePointsRange(id: string) {
+  const { data } = await axios.delete(`${BASE_POINTS_URL}/${id}`);
+  return data;
 }
 
 /** BANNERS **/
@@ -46,7 +68,9 @@ export async function getAllCoupons() {
 
 export async function createCoupon(payload: {
   code: string;
-  discount: number;
+  discount: number | string;
+  minOrder: number;
+  maxValue?: number;
   expiryDate: Date;
 }) {
   const { data } = await axios.post(`${BASE_COUPON_URL}/`, payload);

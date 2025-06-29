@@ -2,7 +2,7 @@ export interface User {
   id: string;
   username: string;
   email: string;
-  role: 'admin' | 'user';
+  role: "admin" | "user";
 }
 
 export interface Banner {
@@ -13,25 +13,26 @@ export interface Banner {
 export interface Coupon {
   _id: string;
   code: string;
-  discount: number;
+  discount: number | string;
   expiryDate: string;
   minOrder: number;
+  maxValue?: number;
 }
 
 export interface Notification {
   id: string;
   title: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
+  type: "info" | "success" | "warning" | "error";
   sentAt: Date;
   recipients: number;
 }
 
-export interface PointsConfig {
-  minOrderValue: number;
-  maxOrderValue: number;
-  pointsAwarded: number;
-  isActive: boolean;
+export interface PointsRange {
+  _id: string;
+  lower: number;
+  upper: number;
+  loyaltyPoints: number;
 }
 
 export interface StoreSettings {
