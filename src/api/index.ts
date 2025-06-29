@@ -40,7 +40,7 @@ export async function deletePointsRange(id: string) {
 
 export async function uploadBanner(file: File) {
   const formData = new FormData();
-  formData.append("banner", file);
+  formData.append("file", file);
 
   const { data } = await axios.post(`${BASE_BANNER_URL}/upload`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
