@@ -8,6 +8,7 @@ export interface User {
 export interface Banner {
   _id: string;
   url: string;
+  redirect?: string | null;
 }
 
 export interface Coupon {

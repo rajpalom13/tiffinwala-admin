@@ -38,17 +38,21 @@ export async function deletePointsRange(id: string) {
 
 /** BANNERS **/
 
-export async function uploadBanner(file: File) {
+export async function uploadBanner(file: File, redirect?: string) {
   const formData = new FormData();
   formData.append("file", file);
+  if (redirect) {
+    formData.append("redirect", redirect);
+  }
 
   const { data } = await axios.post(`${BASE_BANNER_URL}/upload`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
   });
 
   return data;
 }
-
 export async function getAllBanners() {
   const { data } = await axios.get(`${BASE_BANNER_URL}/`);
   return data;

@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Upload, Image, Trash2 } from "lucide-react";
+import { Upload, Image, Trash2, Link as LinkIcon } from "lucide-react";
 import { Banner } from "../types";
-import {
-  uploadBanner,
-  getAllBanners,
-  deleteBanner,
-} from "../api";
+import { uploadBanner, getAllBanners, deleteBanner } from "../api";
 
 export const BannerManager: React.FC = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+
+  // New state for the upload modal:
+  const [showModal, setShowModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [redirectUrl, setRedirectUrl] = useState("");
 
   const loadBanners = async () => {
     const res: any = await getAllBanners();
@@ -22,16 +23,27 @@ export const BannerManager: React.FC = () => {
     loadBanners();
   }, []);
 
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  // Handle selecting a file, open the modal:
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    setSelectedFile(file);
+    setRedirectUrl("");
+    setShowModal(true);
+  };
+
+  // Actually upload:
+  const handleUpload = async () => {
+    if (!selectedFile) return;
+
     setIsUploading(true);
     try {
-      const res: any = await uploadBanner(file);
+      const res: any = await uploadBanner(selectedFile, redirectUrl);
       if (res.status) {
+        setShowModal(false);
+        setSelectedFile(null);
+        setRedirectUrl("");
         loadBanners();
       } else {
         alert("Upload failed");
@@ -75,7 +87,7 @@ export const BannerManager: React.FC = () => {
           <input
             type="file"
             accept="image/*"
-            onChange={handleFileUpload}
+            onChange={handleFileChange}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             disabled={isUploading}
           />
@@ -102,7 +114,7 @@ export const BannerManager: React.FC = () => {
             <input
               type="file"
               accept="image/*"
-              onChange={handleFileUpload}
+              onChange={handleFileChange}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               disabled={isUploading}
             />
@@ -134,13 +146,69 @@ export const BannerManager: React.FC = () => {
                   </button>
                 </div>
               </div>
-              <div className="p-4">
+              <div className="p-4 space-y-2">
                 <span className="font-semibold text-gray-900">
                   Banner ID: {banner._id}
                 </span>
+                {banner.redirect && (
+                  <div className="flex items-center space-x-2 text-blue-600 text-sm">
+                    <LinkIcon className="w-4 h-4" />
+                    <a
+                      href={banner.redirect}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      Visit Link
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Upload Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Upload Banner
+            </h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Redirect URL (optional)
+                </label>
+                <input
+                  type="text"
+                  value={redirectUrl}
+                  onChange={(e) => setRedirectUrl(e.target.value)}
+                  placeholder="https://example.com"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                  disabled={isUploading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpload}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  disabled={isUploading}
+                >
+                  {isUploading ? "Uploading..." : "Upload"}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
