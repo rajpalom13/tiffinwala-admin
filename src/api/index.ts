@@ -1,15 +1,15 @@
 import axios from "axios";
 
-const BASE_BANNER_URL = "https://api.tiffinwala.services/banner";
-const BASE_COUPON_URL = "https://api.tiffinwala.services/coupon";
-const BASE_POINTS_URL = "https://api.tiffinwala.services/points";
+const BASE_BANNER_URL = "https://api.sixty6foods.in/banner";
+const BASE_COUPON_URL = "https://api.sixty6foods.in/coupon";
+const BASE_POINTS_URL = "https://api.sixty6foods.in/points";
 
 export async function sendNotification(payload: {
   title: string;
   body: string;
 }) {
   const res = await axios.post(
-    "https://api.tiffinwala.services/notification/send",
+    "https://api.sixty6foods.in/notification/send",
     payload
   );
   return res.data;
