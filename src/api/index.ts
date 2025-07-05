@@ -85,3 +85,18 @@ export async function deleteCoupon(id: string) {
   const { data } = await axios.delete(`${BASE_COUPON_URL}/${id}`);
   return data;
 }
+
+const BASE_MERCHANTS_URL = "https://merchant.tiffinwala.services";
+
+export async function getMerchantsBalances() {
+  const { data } = await axios.get(`${BASE_MERCHANTS_URL}/merchants-balances`);
+  return data;
+}
+
+export async function settleAllTransactions(merchantId: string, settlementId: string) {
+  const { data } = await axios.put(
+    `${BASE_MERCHANTS_URL}/settle-all/${merchantId}`,
+    { settlementId }
+  );
+  return data;
+}

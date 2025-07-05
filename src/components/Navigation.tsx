@@ -1,5 +1,5 @@
-import React from 'react';
-import { useAuth } from '../hooks/useAuth';
+import React from "react";
+import { useAuth } from "../hooks/useAuth";
 import {
   Store,
   BarChart3,
@@ -8,23 +8,28 @@ import {
   Bell,
   Settings,
   LogOut,
-  User
-} from 'lucide-react';
+  User,
+  Coins,
+} from "lucide-react";
 
 interface NavigationProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
 
-export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
+export const Navigation: React.FC<NavigationProps> = ({
+  activeTab,
+  setActiveTab,
+}) => {
   const { user, logout } = useAuth();
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'banners', label: 'Banners', icon: Image },
-    { id: 'coupons', label: 'Coupons', icon: Ticket },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'points', label: 'Points Config', icon: Settings },
+    { id: "dashboard", label: "Dashboard", icon: BarChart3 },
+    { id: "banners", label: "Banners", icon: Image },
+    { id: "coupons", label: "Coupons", icon: Ticket },
+    { id: "notifications", label: "Notifications", icon: Bell },
+    { id: "points", label: "Points Config", icon: Settings },
+    { id: "merchant-settlements", label: "Settlements", icon: Coins },
   ];
 
   return (
@@ -51,8 +56,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                     activeTab === item.id
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-300 hover:bg-gray-800 hover:text-white"
                   }`}
                 >
                   <Icon className="w-5 h-5" />
