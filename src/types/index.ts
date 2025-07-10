@@ -41,3 +41,19 @@ export interface StoreSettings {
   lastUpdated: Date;
   closureReason?: string;
 }
+
+/** ✅ NEW: Merchant Interface **/
+
+export interface Merchant {
+  _id: string;
+  merchantId: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  upi: string;
+  outstanding: number;
+  balance?: number;
+  qr?: string;
+  transactions?: string[];
+  joiningDate?: string;
+}

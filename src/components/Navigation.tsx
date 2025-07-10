@@ -10,6 +10,7 @@ import {
   LogOut,
   User,
   Coins,
+  QrCode,
 } from "lucide-react";
 
 interface NavigationProps {
@@ -30,10 +31,12 @@ export const Navigation: React.FC<NavigationProps> = ({
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "points", label: "Points Config", icon: Settings },
     { id: "merchant-settlements", label: "Settlements", icon: Coins },
+    { id: "merchant-qrcodes", label: "QR Codes", icon: QrCode },
   ];
 
   return (
     <div className="bg-gray-900 text-white w-64 min-h-screen flex flex-col">
+      {/* Top brand/logo section */}
       <div className="p-6 border-b border-gray-700">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -46,6 +49,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
       </div>
 
+      {/* Navigation items */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           {menuItems.map((item) => {
@@ -69,6 +73,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         </ul>
       </nav>
 
+      {/* User info and logout */}
       <div className="p-4 border-t border-gray-700">
         <div className="flex items-center space-x-3 mb-4">
           <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">

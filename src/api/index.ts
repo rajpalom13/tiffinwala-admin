@@ -1,22 +1,31 @@
 import axios from "axios";
 
+/** -----------------------------
+ * BASE URLs
+ * -----------------------------
+ */
 const BASE_BANNER_URL = "https://api.sixty6foods.in/banner";
 const BASE_COUPON_URL = "https://api.sixty6foods.in/coupon";
 const BASE_POINTS_URL = "https://api.sixty6foods.in/points";
+const BASE_NOTIFICATION_URL = "https://api.sixty6foods.in/notification";
+const BASE_MERCHANTS_URL = "http://localhost:5000";
 
+/** -----------------------------
+ * NOTIFICATIONS
+ * -----------------------------
+ */
 export async function sendNotification(payload: {
   title: string;
   body: string;
 }) {
-  const res = await axios.post(
-    "https://api.sixty6foods.in/notification/send",
-    payload
-  );
-  return res.data;
+  const { data } = await axios.post(`${BASE_NOTIFICATION_URL}/send`, payload);
+  return data;
 }
 
-/** POINTS **/
-
+/** -----------------------------
+ * POINTS
+ * -----------------------------
+ */
 export async function getAllPointsRanges() {
   const { data } = await axios.get(BASE_POINTS_URL);
   return data;
@@ -36,8 +45,10 @@ export async function deletePointsRange(id: string) {
   return data;
 }
 
-/** BANNERS **/
-
+/** -----------------------------
+ * BANNERS
+ * -----------------------------
+ */
 export async function uploadBanner(file: File, redirect?: string) {
   const formData = new FormData();
   formData.append("file", file);
@@ -53,6 +64,7 @@ export async function uploadBanner(file: File, redirect?: string) {
 
   return data;
 }
+
 export async function getAllBanners() {
   const { data } = await axios.get(`${BASE_BANNER_URL}/`);
   return data;
@@ -63,8 +75,10 @@ export async function deleteBanner(id: string) {
   return data;
 }
 
-/** COUPONS **/
-
+/** -----------------------------
+ * COUPONS
+ * -----------------------------
+ */
 export async function getAllCoupons() {
   const { data } = await axios.get(`${BASE_COUPON_URL}/`);
   return data;
@@ -86,17 +100,40 @@ export async function deleteCoupon(id: string) {
   return data;
 }
 
-const BASE_MERCHANTS_URL = "https://merchant.tiffinwala.services";
+/** -----------------------------
+ * MERCHANTS
+ * -----------------------------
+ */
 
+/**
+ * Get all merchants with balances, UPI, etc.
+ */
 export async function getMerchantsBalances() {
   const { data } = await axios.get(`${BASE_MERCHANTS_URL}/merchants-balances`);
   return data;
 }
 
-export async function settleAllTransactions(merchantId: string, settlementId: string) {
+/**
+ * Mark all unsettled transactions as settled for a merchant.
+ */
+export async function settleAllTransactions(
+  merchantId: string,
+  settlementId: string
+) {
   const { data } = await axios.put(
     `${BASE_MERCHANTS_URL}/settle-all/${merchantId}`,
     { settlementId }
+  );
+  return data;
+}
+
+/**
+ * Update the UPI ID of a merchant.
+ */
+export async function updateMerchantUPI(merchantId: string, upi: string) {
+  const { data } = await axios.put(
+    `${BASE_MERCHANTS_URL}/merchant/${merchantId}/upi`,
+    { upi }
   );
   return data;
 }

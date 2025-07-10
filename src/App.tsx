@@ -8,6 +8,7 @@ import { CouponManager } from "./components/CouponManager";
 import { NotificationManager } from "./components/NotificationManager";
 import { PointsConfigComponent } from "./components/PointsConfig";
 import { MerchantSettlementManager } from "./components/MerchantSettlementManager";
+import { MerchantQRCodeManager } from "./components/MerchantQRCodeManager";
 
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -31,6 +32,8 @@ const AppContent: React.FC = () => {
         return <PointsConfigComponent />;
       case "merchant-settlements":
         return <MerchantSettlementManager />;
+      case "merchant-qrcodes":
+      return <MerchantQRCodeManager />;
 
       default:
         return <Dashboard />;
