@@ -8,7 +8,7 @@ const BASE_BANNER_URL = "https://api.sixty6foods.in/banner";
 const BASE_COUPON_URL = "https://api.sixty6foods.in/coupon";
 const BASE_POINTS_URL = "https://api.sixty6foods.in/points";
 const BASE_NOTIFICATION_URL = "https://api.sixty6foods.in/notification";
-const BASE_MERCHANTS_URL = "http://localhost:5000";
+const BASE_MERCHANTS_URL = "https://merchant.tiffinwala.services";
 
 /** -----------------------------
  * NOTIFICATIONS
