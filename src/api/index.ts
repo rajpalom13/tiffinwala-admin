@@ -8,7 +8,7 @@ const BASE_BANNER_URL = "https://api.sixty6foods.in/banner";
 const BASE_COUPON_URL = "https://api.sixty6foods.in/coupon";
 const BASE_POINTS_URL = "https://api.sixty6foods.in/points";
 const BASE_NOTIFICATION_URL = "https://api.sixty6foods.in/notification";
-const BASE_MERCHANTS_URL = "https://merchant.tiffinwala.services";
+const BASE_MERCHANTS_URL = "https://merchant.tiffinwala.services/merchant";
 
 /** -----------------------------
  * NOTIFICATIONS
@@ -130,27 +130,36 @@ export async function settleAllTransactions(
 /**
  * Update the UPI ID of a merchant.
  */
-export async function updateMerchantUPI(merchantId: string, upi: string) {
+export async function updateMerchantUPI(
+  merchantId: string,
+  upi: string
+) {
   const { data } = await axios.put(
-    `${BASE_MERCHANTS_URL}/merchant/${merchantId}/upi`,
+    `${BASE_MERCHANTS_URL}/${merchantId}/upi`,
     { upi }
   );
   return data;
 }
 
+/**
+ * Get all Extra Cash records for a merchant.
+ */
 export async function getMerchantExtraCash(merchantId: string) {
   const { data } = await axios.get(
-    `https://merchant.tiffinwala.services/merchant/${merchantId}/extra-cash`
+    `${BASE_MERCHANTS_URL}/${merchantId}/extra-cash`
   );
   return data;
 }
 
+/**
+ * Settle all Extra Cash records for a merchant.
+ */
 export async function settleMerchantExtraCash(
   merchantId: string,
   settlementId: string
 ) {
   const { data } = await axios.put(
-    `https://merchant.tiffinwala.services/merchant/${merchantId}/extra-cash/settle`,
+    `${BASE_MERCHANTS_URL}/${merchantId}/extra-cash/settle`,
     { settlementId }
   );
   return data;
