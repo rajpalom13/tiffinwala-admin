@@ -137,3 +137,21 @@ export async function updateMerchantUPI(merchantId: string, upi: string) {
   );
   return data;
 }
+
+export async function getMerchantExtraCash(merchantId: string) {
+  const { data } = await axios.get(
+    `https://merchant.tiffinwala.services/merchant/${merchantId}/extra-cash`
+  );
+  return data;
+}
+
+export async function settleMerchantExtraCash(
+  merchantId: string,
+  settlementId: string
+) {
+  const { data } = await axios.put(
+    `https://merchant.tiffinwala.services/merchant/${merchantId}/extra-cash/settle`,
+    { settlementId }
+  );
+  return data;
+}

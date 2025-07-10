@@ -9,6 +9,7 @@ import { NotificationManager } from "./components/NotificationManager";
 import { PointsConfigComponent } from "./components/PointsConfig";
 import { MerchantSettlementManager } from "./components/MerchantSettlementManager";
 import { MerchantQRCodeManager } from "./components/MerchantQRCodeManager";
+import { MerchantExtraSettlementManager } from "./components/ExtraMerchantSettlementManager";
 
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -32,9 +33,10 @@ const AppContent: React.FC = () => {
         return <PointsConfigComponent />;
       case "merchant-settlements":
         return <MerchantSettlementManager />;
+      case "merchant-extra-settlements":
+        return <MerchantExtraSettlementManager />;
       case "merchant-qrcodes":
-      return <MerchantQRCodeManager />;
-
+        return <MerchantQRCodeManager />;
       default:
         return <Dashboard />;
     }
