@@ -139,7 +139,7 @@ export async function settleMerchantExtraCash(
   return data;
 }
 
-const BASE_URL = "http://localhost:3003";
+const BASE_URL = "https://api.sixty6foods.in";
 
 export async function getAnalyticsOverview() {
   const { data } = await axios.get(`${BASE_URL}/analytics/overview`);
