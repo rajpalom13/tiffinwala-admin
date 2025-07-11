@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import {
-  getMerchantsBalances,
   getMerchantExtraCash,
   settleMerchantExtraCash,
+  getMerchantsUnsettledBalances,
 } from "../api";
 import { CheckCircle, RefreshCcw } from "lucide-react";
 
@@ -32,7 +32,7 @@ export const MerchantExtraSettlementManager: React.FC = () => {
 const loadMerchants = async () => {
   setLoading(true);
   try {
-    const data: any = await getMerchantsBalances();
+    const data: any = await getMerchantsUnsettledBalances();
     setMerchants(data);
 
     // Now fetch extra cash separately

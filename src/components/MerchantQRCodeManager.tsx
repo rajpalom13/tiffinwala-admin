@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { getMerchantsBalances } from "../api";
+import {  getMerchantsUnsettledBalances } from "../api";
 import html2canvas from "html2canvas";
 import { DownloadCloud, RefreshCcw } from "lucide-react";
 import { Merchant } from "../types";
@@ -13,7 +13,7 @@ export const MerchantQRCodeManager: React.FC = () => {
   const loadMerchants = async () => {
     setLoading(true);
     try {
-      const data: any = await getMerchantsBalances();
+      const data: any = await getMerchantsUnsettledBalances();
       setMerchants(data);
     } catch (e) {
       console.error(e);

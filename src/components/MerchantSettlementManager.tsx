@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import {
-  getMerchantsBalances,
+  getMerchantsUnsettledBalances,
   settleAllTransactions,
   updateMerchantUPI,
 } from "../api";
-import { CheckCircle, RefreshCcw, Save } from "lucide-react";
+import { CheckCircle, RefreshCcw, Pencil } from "lucide-react";
 
 export interface Merchant {
   _id: string;
@@ -25,19 +25,22 @@ export const MerchantSettlementManager: React.FC = () => {
   );
   const [editingUPI, setEditingUPI] = useState<Record<string, string>>({});
   const [savingUPI, setSavingUPI] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [currentEditingMerchant, setCurrentEditingMerchant] =
+    useState<Merchant | null>(null);
 
-  const loadMerchants = async () => {
-    setLoading(true);
-    try {
-      const data: any = await getMerchantsBalances();
-      console.log(data);
-      setMerchants(data);
-    } catch (e) {
-      console.error(e);
-      alert("Failed to load merchants");
-    }
-    setLoading(false);
-  };
+const loadMerchants = async () => {
+  setLoading(true);
+  try {
+    const data: any = await getMerchantsUnsettledBalances();
+    setMerchants(data);
+  } catch (e) {
+    console.error(e);
+    alert("Failed to load merchants");
+  }
+  setLoading(false);
+};
+
 
   useEffect(() => {
     loadMerchants();
@@ -61,13 +64,6 @@ export const MerchantSettlementManager: React.FC = () => {
     } finally {
       setSettling(null);
     }
-  };
-
-  const handleInputChange = (merchantId: string, value: string) => {
-    setSettlementIds((prev) => ({
-      ...prev,
-      [merchantId]: value,
-    }));
   };
 
   const handleUpdateUPI = async (merchantId: string) => {
@@ -143,45 +139,30 @@ export const MerchantSettlementManager: React.FC = () => {
                 <span className="font-mono">{merchant.upi || "—"}</span>
               </div>
 
-              {/* Input to change UPI */}
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  placeholder="Enter new UPI ID"
-                  value={editingUPI[merchant.merchantId] || merchant.upi || ""}
-                  onChange={(e) =>
-                    setEditingUPI((prev) => ({
-                      ...prev,
-                      [merchant.merchantId]: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  disabled={savingUPI === merchant.merchantId}
-                />
-                <button
-                  onClick={() => handleUpdateUPI(merchant.merchantId)}
-                  disabled={savingUPI === merchant.merchantId}
-                  className="w-full flex justify-center items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50"
-                >
-                  {savingUPI === merchant.merchantId ? (
-                    <span>Saving...</span>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4" />
-                      <span>Save UPI</span>
-                    </>
-                  )}
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  setCurrentEditingMerchant(merchant);
+                  setEditingUPI((prev) => ({
+                    ...prev,
+                    [merchant.merchantId]: merchant.upi || "",
+                  }));
+                  setShowModal(true);
+                }}
+                className="text-green-600 hover:text-green-800"
+              >
+                <Pencil className="w-5 h-5" />
+              </button>
 
-              {/* Settlement section */}
               <div className="space-y-2 pt-4 border-t border-gray-200 mt-4">
                 <input
                   type="text"
                   placeholder="Settlement ID"
                   value={settlementIds[merchant.merchantId] || ""}
                   onChange={(e) =>
-                    handleInputChange(merchant.merchantId, e.target.value)
+                    setSettlementIds((prev) => ({
+                      ...prev,
+                      [merchant.merchantId]: e.target.value,
+                    }))
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   disabled={settling === merchant.merchantId}
@@ -204,6 +185,52 @@ export const MerchantSettlementManager: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* UPI Edit Modal */}
+      {showModal && currentEditingMerchant && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white w-full max-w-md rounded-lg p-6 space-y-4">
+            <h2 className="text-xl font-bold text-gray-900">
+              Edit UPI for {currentEditingMerchant.firstName}{" "}
+              {currentEditingMerchant.lastName}
+            </h2>
+
+            <input
+              type="text"
+              value={editingUPI[currentEditingMerchant.merchantId] || ""}
+              onChange={(e) =>
+                setEditingUPI((prev) => ({
+                  ...prev,
+                  [currentEditingMerchant.merchantId]: e.target.value,
+                }))
+              }
+              placeholder="Enter new UPI ID"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  await handleUpdateUPI(currentEditingMerchant.merchantId);
+                  setShowModal(false);
+                }}
+                disabled={savingUPI === currentEditingMerchant.merchantId}
+                className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+              >
+                {savingUPI === currentEditingMerchant.merchantId
+                  ? "Saving..."
+                  : "Save"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

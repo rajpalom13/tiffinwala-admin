@@ -1,189 +1,109 @@
-import React, { useState, useEffect } from 'react';
-import { Store, Users, ShoppingBag, Power, PowerOff } from 'lucide-react';
-import { StoreSettings } from '../types';
+import React, { useState, useEffect } from "react";
+import {
+  getStoreStatus,
+  getAnalyticsOverview,
+  getOrdersPerDay,
+  getTopItems,
+} from "../api";
+import {
+  Power,
+  PowerOff,
+  ShoppingBag,
+  DollarSign,
+} from "lucide-react";
+import { ResponsiveLine } from "@nivo/line";
+import { ResponsiveBar } from "@nivo/bar";
+import { ResponsivePie } from "@nivo/pie";
 
 export const Dashboard: React.FC = () => {
-  const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
-    const saved = localStorage.getItem('storeSettings');
-    return saved
-      ? JSON.parse(saved)
-      : {
-          isOpen: true,
-          lastUpdated: new Date(),
-          closureReason: '',
-        };
-  });
-
-  const [closureReason, setClosureReason] = useState('');
-  const [showReasonInput, setShowReasonInput] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [storeOpen, setStoreOpen] = useState(true);
+  const [overview, setOverview] = useState<any>(null);
+  const [ordersPerDay, setOrdersPerDay] = useState<any[]>([]);
+  const [topItems, setTopItems] = useState<any[]>([]);
 
   useEffect(() => {
-    localStorage.setItem('storeSettings', JSON.stringify(storeSettings));
-  }, [storeSettings]);
+    loadDashboard();
+  }, []);
 
-  const updateStore = async (newStatus: 'Active' | 'Inactive', reason?: string) => {
+  const loadDashboard = async () => {
     try {
       setLoading(true);
+      const [storeStatus, analytics, daily, topItemsData] = await Promise.all([
+        getStoreStatus(),
+        getAnalyticsOverview(),
+        getOrdersPerDay(),
+        getTopItems(),
+      ]);
 
-      const res = await fetch('http://localhost:3000/store', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          status: newStatus,
-          reason: reason || '',
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.status) {
-        setStoreSettings({
-          isOpen: newStatus === 'Active',
-          lastUpdated: new Date(),
-          closureReason: newStatus === 'Inactive' ? reason || '' : '',
-        });
-        setShowReasonInput(false);
-        setClosureReason('');
-      } else {
-        alert('Failed to update store.');
-      }
+      // @ts-ignore
+      setStoreOpen(storeStatus.store);
+      setOverview(analytics);
+      // @ts-ignore
+      setOrdersPerDay(daily.data);
+      // @ts-ignore
+      setTopItems(topItemsData.items);
     } catch (error) {
-      console.error('Failed to update store:', error);
-      alert('An error occurred while updating the store.');
+      console.error(error);
+      alert("Failed to load dashboard.");
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleStore = () => {
-    if (storeSettings.isOpen) {
-      setShowReasonInput(true);
-    } else {
-      updateStore('Active');
-    }
-  };
-
-  const confirmClosure = () => {
-    updateStore('Inactive', closureReason || 'Store temporarily closed');
-  };
-
   const stats = [
     {
-      label: 'Total Users',
-      value: '2,543',
-      change: '+12%',
-      icon: Users,
-      color: 'bg-blue-500',
-    },
-    {
-      label: 'Total Orders',
-      value: '1,234',
-      change: '+8%',
+      label: "Total Orders",
+      value: overview?.totalOrders || "0",
       icon: ShoppingBag,
-      color: 'bg-green-500',
+      color: "bg-blue-500",
     },
     {
-      label: 'Active Banners',
-      value: '5',
-      change: '0%',
-      icon: Store,
-      color: 'bg-orange-500',
+      label: "Total Revenue",
+      value: `₹ ${overview?.totalRevenue || 0}`,
+      icon: DollarSign,
+      color: "bg-green-500",
+    },
+    {
+      label: "Store Status",
+      value: storeOpen ? "Open" : "Closed",
+      icon: storeOpen ? Power : PowerOff,
+      color: storeOpen ? "bg-green-500" : "bg-red-500",
     },
   ];
+
+  const lineData = [
+    {
+      id: "Orders",
+      data: ordersPerDay.map((d) => ({
+        x: d._id,
+        y: d.count,
+      })),
+    },
+  ];
+
+  const barData = topItems.map((item) => ({
+    item: item._id,
+    quantity: item.totalQuantity,
+  }));
+
+  const pieData = topItems.map((item) => ({
+    id: item._id,
+    label: item._id,
+    value: item.totalRevenue,
+  }));
 
   return (
     <div className="p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
         <p className="text-gray-600">
-          Welcome back! Here's what's happening with your store.
+          Welcome! Here are your latest store analytics.
         </p>
       </div>
 
-      {/* Store Status Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div
-              className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                storeSettings.isOpen ? 'bg-green-100' : 'bg-red-100'
-              }`}
-            >
-              {storeSettings.isOpen ? (
-                <Power className="w-6 h-6 text-green-600" />
-              ) : (
-                <PowerOff className="w-6 h-6 text-red-600" />
-              )}
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">
-                Store Status: {storeSettings.isOpen ? 'Open' : 'Closed'}
-              </h2>
-              <p className="text-gray-600">
-                Last updated:{' '}
-                {new Date(storeSettings.lastUpdated).toLocaleString()}
-              </p>
-              {!storeSettings.isOpen && storeSettings.closureReason && (
-                <p className="text-red-600 text-sm mt-1">
-                  Reason: {storeSettings.closureReason}
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            {showReasonInput && (
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  placeholder="Closure reason (optional)"
-                  value={closureReason}
-                  onChange={(e) => setClosureReason(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                />
-                <button
-                  onClick={confirmClosure}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                  disabled={loading}
-                >
-                  {loading ? 'Closing...' : 'Close'}
-                </button>
-                <button
-                  onClick={() => setShowReasonInput(false)}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-            {!showReasonInput && (
-              <button
-                onClick={toggleStore}
-                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                  storeSettings.isOpen
-                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                    : 'bg-green-600 hover:bg-green-700 text-white'
-                }`}
-                disabled={loading}
-              >
-                {loading
-                  ? storeSettings.isOpen
-                    ? 'Closing...'
-                    : 'Opening...'
-                  : storeSettings.isOpen
-                  ? 'Close Store'
-                  : 'Open Store'}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
@@ -199,7 +119,6 @@ export const Dashboard: React.FC = () => {
                   <p className="text-2xl font-bold text-gray-900 mt-1">
                     {stat.value}
                   </p>
-                  <p className="text-sm text-green-600 mt-1">{stat.change}</p>
                 </div>
                 <div
                   className={`w-12 h-12 rounded-lg ${stat.color} flex items-center justify-center`}
@@ -210,6 +129,108 @@ export const Dashboard: React.FC = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* Orders per day line chart */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">
+          Orders Per Day (Last 7 Days)
+        </h2>
+        {ordersPerDay.length === 0 ? (
+          <p className="text-gray-500">No orders in the last 7 days.</p>
+        ) : (
+          <div style={{ height: "300px" }}>
+            <ResponsiveLine
+              data={lineData}
+              margin={{ top: 20, right: 20, bottom: 50, left: 50 }}
+              xScale={{ type: "point" }}
+              yScale={{ type: "linear", min: "auto", max: "auto" }}
+              axisBottom={{
+                legend: "Date",
+                legendOffset: 36,
+                legendPosition: "middle",
+              }}
+              axisLeft={{
+                legend: "Orders",
+                legendOffset: -40,
+                legendPosition: "middle",
+              }}
+              colors={{ scheme: "nivo" }}
+              pointSize={8}
+              pointColor={{ theme: "background" }}
+              pointBorderWidth={2}
+              pointBorderColor={{ from: "serieColor" }}
+              useMesh={true}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Top items bar chart */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">
+          Top Selling Items (Quantity)
+        </h2>
+        {topItems.length === 0 ? (
+          <p className="text-gray-500">No items sold yet.</p>
+        ) : (
+          <div style={{ height: "300px" }}>
+            <ResponsiveBar
+              data={barData}
+              keys={["quantity"]}
+              indexBy="item"
+              margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+              padding={0.3}
+              colors={{ scheme: "nivo" }}
+              axisBottom={{
+                legend: "Item",
+                legendPosition: "middle",
+                legendOffset: 32,
+                tickRotation: -30,
+              }}
+              axisLeft={{
+                legend: "Quantity Sold",
+                legendPosition: "middle",
+                legendOffset: -50,
+              }}
+              tooltip={({ indexValue, value }) => (
+                <strong>
+                  {indexValue}: {value}
+                </strong>
+              )}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Top items pie chart */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">
+          Revenue Share of Top Items
+        </h2>
+        {topItems.length === 0 ? (
+          <p className="text-gray-500">No revenue data yet.</p>
+        ) : (
+          <div style={{ height: "300px" }}>
+            <ResponsivePie
+              data={pieData}
+              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+              innerRadius={0.5}
+              padAngle={0.7}
+              cornerRadius={3}
+              colors={{ scheme: "nivo" }}
+              activeOuterRadiusOffset={8}
+              borderWidth={1}
+              borderColor={{ from: "color", modifiers: [["darker", 0.2]] }}
+              arcLinkLabelsSkipAngle={10}
+              arcLinkLabelsTextColor="#333333"
+              arcLinkLabelsThickness={2}
+              arcLinkLabelsColor={{ from: "color" }}
+              arcLabelsSkipAngle={10}
+              arcLabelsTextColor={{ from: "color", modifiers: [["darker", 2]] }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

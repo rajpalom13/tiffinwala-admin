@@ -1,19 +1,11 @@
 import axios from "axios";
 
-/** -----------------------------
- * BASE URLs
- * -----------------------------
- */
 const BASE_BANNER_URL = "https://api.sixty6foods.in/banner";
 const BASE_COUPON_URL = "https://api.sixty6foods.in/coupon";
 const BASE_POINTS_URL = "https://api.sixty6foods.in/points";
 const BASE_NOTIFICATION_URL = "https://api.sixty6foods.in/notification";
-const BASE_MERCHANTS_URL = "https://merchant.tiffinwala.services/merchant";
+const BASE_MERCHANTS_URL = "http://localhost:5000";
 
-/** -----------------------------
- * NOTIFICATIONS
- * -----------------------------
- */
 export async function sendNotification(payload: {
   title: string;
   body: string;
@@ -22,10 +14,6 @@ export async function sendNotification(payload: {
   return data;
 }
 
-/** -----------------------------
- * POINTS
- * -----------------------------
- */
 export async function getAllPointsRanges() {
   const { data } = await axios.get(BASE_POINTS_URL);
   return data;
@@ -45,23 +33,17 @@ export async function deletePointsRange(id: string) {
   return data;
 }
 
-/** -----------------------------
- * BANNERS
- * -----------------------------
- */
 export async function uploadBanner(file: File, redirect?: string) {
   const formData = new FormData();
   formData.append("file", file);
   if (redirect) {
     formData.append("redirect", redirect);
   }
-
   const { data } = await axios.post(`${BASE_BANNER_URL}/upload`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
-
   return data;
 }
 
@@ -75,10 +57,6 @@ export async function deleteBanner(id: string) {
   return data;
 }
 
-/** -----------------------------
- * COUPONS
- * -----------------------------
- */
 export async function getAllCoupons() {
   const { data } = await axios.get(`${BASE_COUPON_URL}/`);
   return data;
@@ -100,22 +78,27 @@ export async function deleteCoupon(id: string) {
   return data;
 }
 
-/** -----------------------------
- * MERCHANTS
- * -----------------------------
- */
-
-/**
- * Get all merchants with balances, UPI, etc.
- */
 export async function getMerchantsBalances() {
   const { data } = await axios.get(`${BASE_MERCHANTS_URL}/merchants-balances`);
   return data;
 }
 
-/**
- * Mark all unsettled transactions as settled for a merchant.
- */
+export async function getMerchantsUnsettledBalances() {
+  const { data } = await axios.get(`${BASE_MERCHANTS_URL}/merchants/unsettled-balances`);
+  return data;
+}
+
+export async function settleAllUnsettledTransactions(
+  merchantId: string,
+  settlementId: string
+) {
+  const { data } = await axios.put(
+    `${BASE_MERCHANTS_URL}/merchant/${merchantId}/settle-all-transactions`,
+    { settlementId }
+  );
+  return data;
+}
+
 export async function settleAllTransactions(
   merchantId: string,
   settlementId: string
@@ -127,40 +110,53 @@ export async function settleAllTransactions(
   return data;
 }
 
-/**
- * Update the UPI ID of a merchant.
- */
 export async function updateMerchantUPI(
   merchantId: string,
   upi: string
 ) {
   const { data } = await axios.put(
-    `${BASE_MERCHANTS_URL}/${merchantId}/upi`,
+    `${BASE_MERCHANTS_URL}/merchant/${merchantId}/upi`,
     { upi }
   );
   return data;
 }
 
-/**
- * Get all Extra Cash records for a merchant.
- */
 export async function getMerchantExtraCash(merchantId: string) {
   const { data } = await axios.get(
-    `${BASE_MERCHANTS_URL}/${merchantId}/extra-cash`
+    `${BASE_MERCHANTS_URL}/merchant/${merchantId}/extra-cash`
   );
   return data;
 }
 
-/**
- * Settle all Extra Cash records for a merchant.
- */
 export async function settleMerchantExtraCash(
   merchantId: string,
   settlementId: string
 ) {
   const { data } = await axios.put(
-    `${BASE_MERCHANTS_URL}/${merchantId}/extra-cash/settle`,
+    `${BASE_MERCHANTS_URL}/merchant/${merchantId}/extra-cash/settle`,
     { settlementId }
   );
+  return data;
+}
+
+const BASE_URL = "http://localhost:3003";
+
+export async function getAnalyticsOverview() {
+  const { data } = await axios.get(`${BASE_URL}/analytics/overview`);
+  return data;
+}
+
+export async function getOrdersPerDay() {
+  const { data } = await axios.get(`${BASE_URL}/analytics/orders-per-day`);
+  return data;
+}
+
+export async function getTopItems() {
+  const { data } = await axios.get(`${BASE_URL}/analytics/top-items`);
+  return data;
+}
+
+export async function getStoreStatus() {
+  const { data } = await axios.get(`${BASE_URL}/store/status`);
   return data;
 }
