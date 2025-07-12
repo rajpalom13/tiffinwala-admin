@@ -1,73 +1,65 @@
-import { useState, useContext, createContext, ReactNode } from 'react';
-import { User } from '../types';
+import { useState, useEffect, createContext, useContext } from "react";
+import { sendOtp, verifyOtp } from "../api";
 
-interface AuthContextType {
-  user: User | null;
-  login: (username: string, password: string) => Promise<boolean>;
-  signup: (username: string, email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+interface AuthContextValue {
   isAuthenticated: boolean;
+  sendOtpCode: (phone: string) => Promise<boolean>;
+  verifyOtpCode: (phone: string, otp: string) => Promise<boolean>;
+  logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const savedUser = localStorage.getItem('adminUser');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const login = async (username: string, password: string): Promise<boolean> => {
-    // Simulate API call - in production, this would be a real authentication
-    if (username === 'admin' && password === 'admin123') {
-      const adminUser: User = {
-        id: '1',
-        username: 'admin',
-        email: 'admin@store.com',
-        role: 'admin'
-      };
-      setUser(adminUser);
-      localStorage.setItem('adminUser', JSON.stringify(adminUser));
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) setIsAuthenticated(true);
+  }, []);
+
+  const sendOtpCode = async (phone: string) => {
+    try {
+      await sendOtp(phone);
       return true;
+    } catch (e) {
+      console.error(e);
+      return false;
     }
-    return false;
   };
 
-  const signup = async (username: string, email: string, password: string): Promise<boolean> => {
-    // Simulate API call - in production, this would create a new admin account
-    const newUser: User = {
-      id: Date.now().toString(),
-      username,
-      email,
-      role: 'admin'
-    };
-    setUser(newUser);
-    localStorage.setItem('adminUser', JSON.stringify(newUser));
-    return true;
+  const verifyOtpCode = async (phone: string, otp: string) => {
+    try {
+      const res: any = await verifyOtp(phone, otp);
+      if (res?.status) {
+        localStorage.setItem("token", "dummyToken");
+        setIsAuthenticated(true);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('adminUser');
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      login,
-      signup,
-      logout,
-      isAuthenticated: !!user
-    }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, sendOtpCode, verifyOtpCode, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  return ctx;
+}

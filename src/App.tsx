@@ -10,6 +10,7 @@ import { PointsConfigComponent } from "./components/PointsConfig";
 import { MerchantSettlementManager } from "./components/MerchantSettlementManager";
 import { MerchantQRCodeManager } from "./components/MerchantQRCodeManager";
 import { MerchantExtraSettlementManager } from "./components/ExtraMerchantSettlementManager";
+import { RefundSystem } from "./components/Loyalty";
 
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -37,6 +38,8 @@ const AppContent: React.FC = () => {
         return <MerchantExtraSettlementManager />;
       case "merchant-qrcodes":
         return <MerchantQRCodeManager />;
+      case "refund":
+        return <RefundSystem />;
       default:
         return <Dashboard />;
     }

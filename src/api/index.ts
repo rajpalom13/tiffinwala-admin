@@ -160,3 +160,31 @@ export async function getStoreStatus() {
   const { data } = await axios.get(`${BASE_URL}/store/status`);
   return data;
 }
+
+/** REFUND SYSTEM **/
+
+export async function addLoyaltyPoints(payload: {
+  phone: string;
+  points: number;
+}) {
+  const { data } = await axios.post(
+    `https://api.sixty6foods.in/user/loyalty`,
+    payload
+  );
+  return data;
+}
+
+export async function sendOtp(phoneNumber: string) {
+  const { data } = await axios.post(`${BASE_URL}/otp/send`, {
+    phoneNumber,
+  });
+  return data;
+}
+
+export async function verifyOtp(phoneNumber: string, otp: string) {
+  const { data } = await axios.post(`${BASE_URL}/otp/verify`, {
+    phoneNumber,
+    otp,
+  });
+  return data;
+}

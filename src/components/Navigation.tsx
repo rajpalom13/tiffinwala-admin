@@ -8,10 +8,11 @@ import {
   Bell,
   Settings,
   LogOut,
-  User,
   Coins,
   QrCode,
   DollarSign,
+  RotateCw,
+  LucideIcon,
 } from "lucide-react";
 
 interface NavigationProps {
@@ -19,13 +20,19 @@ interface NavigationProps {
   setActiveTab: (tab: string) => void;
 }
 
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+}
+
 export const Navigation: React.FC<NavigationProps> = ({
   activeTab,
   setActiveTab,
 }) => {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
 
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
     { id: "banners", label: "Banners", icon: Image },
     { id: "coupons", label: "Coupons", icon: Ticket },
@@ -34,6 +41,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     { id: "merchant-settlements", label: "Settlements", icon: Coins },
     { id: "merchant-extra-settlements", label: "Extra Cash Settlement", icon: DollarSign },
     { id: "merchant-qrcodes", label: "QR Codes", icon: QrCode },
+    { id: "refund", label: "Refund System", icon: RotateCw },
   ];
 
   return (
@@ -74,15 +82,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       </nav>
 
       <div className="p-4 border-t border-gray-700">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
-            <User className="w-4 h-4" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium">{user?.username}</p>
-            <p className="text-xs text-gray-400">{user?.email}</p>
-          </div>
-        </div>
         <button
           onClick={logout}
           className="w-full flex items-center space-x-3 px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-colors"
