@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import {  getMerchantsUnsettledBalances } from "../api";
+import { getMerchantsUnsettledBalances } from "../api";
 import html2canvas from "html2canvas";
 import { DownloadCloud, RefreshCcw } from "lucide-react";
 import { Merchant } from "../types";
@@ -29,8 +29,17 @@ export const MerchantQRCodeManager: React.FC = () => {
   /**
    * Generates the dynamic link for a merchant
    */
+  // in MerchantQRCodeManager
   const generateLink = (merchantId: string) => {
-    return `https://tiffinwala.page.link/?link=https://tiffinwala.services/open?merchantId=${merchantId}&apn=com.tiffinwala.app&ibi=com.tiffinwala.ios&ofl=https://play.google.com/store/apps/details?id=com.tiffinwala.app`;
+    const deep = `https://tiffinwala.services/open?merchantId=${encodeURIComponent(
+      merchantId
+    )}`;
+    // efr=1 skips preview page; make sure your Firebase config allows this domain
+    return `https://tiffinwala.page.link/?link=${encodeURIComponent(
+      deep
+    )}&apn=com.tiffinwala.app&ibi=com.tiffinwala.ios&ofl=${encodeURIComponent(
+      "https://play.google.com/store/apps/details?id=com.tiffinwala.app"
+    )}&efr=1`;
   };
 
   /**
@@ -132,6 +141,8 @@ export const MerchantQRCodeManager: React.FC = () => {
                         size={512}
                         bgColor="transparent"
                         fgColor="#000000"
+                        level="H" // more error correction
+                        includeMargin={true} // quiet zone helps scanning
                       />
                     </div>
                     {/* Merchant ID text under QR */}

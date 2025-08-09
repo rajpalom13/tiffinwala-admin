@@ -18,6 +18,7 @@ export interface Coupon {
   expiryDate: string;
   minOrder: number;
   maxValue?: number;
+  enabled: boolean;
 }
 
 export interface Notification {

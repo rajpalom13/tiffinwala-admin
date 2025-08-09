@@ -6,12 +6,15 @@ import {
   Percent,
   Trash2,
   IndianRupee,
+  ToggleLeft,
+  ToggleRight
 } from "lucide-react";
 import { Coupon } from "../types";
 import {
   getAllCoupons,
   createCoupon,
   deleteCoupon,
+  toggleCouponStatus
 } from "../api";
 
 export const CouponManager: React.FC = () => {
@@ -38,21 +41,18 @@ export const CouponManager: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Guarantee discount is string | number (not undefined)
     const discountValue =
       formData.discount === ""
         ? 0
         : isNaN(Number(formData.discount))
-          ? formData.discount
-          : Number(formData.discount);
+        ? formData.discount
+        : Number(formData.discount);
 
     const payload = {
       code: formData.code.toUpperCase(),
       discount: discountValue,
       minOrder: formData.minOrder,
-      maxValue:
-        formData.maxValue > 0 ? formData.maxValue : undefined,
+      maxValue: formData.maxValue > 0 ? formData.maxValue : undefined,
       expiryDate: new Date(formData.expiryDate),
     };
 
@@ -79,7 +79,6 @@ export const CouponManager: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this coupon?")) return;
-
     try {
       const res: any = await deleteCoupon(id);
       if (res.status) {
@@ -93,10 +92,27 @@ export const CouponManager: React.FC = () => {
     }
   };
 
+  const handleToggle = async (id: string, currentStatus: boolean) => {
+    try {
+      const res: any = await toggleCouponStatus(id, !currentStatus);
+      if (res.status) {
+        setCoupons((prev) =>
+          prev.map((c) =>
+            c._id === id ? { ...c, enabled: !currentStatus } : c
+          )
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update status");
+    }
+  };
+
   const isExpired = (date: string) => new Date(date) < new Date();
 
   return (
     <div className="p-6">
+      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -114,136 +130,6 @@ export const CouponManager: React.FC = () => {
           <span>Add Coupon</span>
         </button>
       </div>
-
-      {/* Add Coupon Modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                Create New Coupon
-              </h2>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Coupon Code
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.code}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        code: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Discount
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={formData.discount}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          discount: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                      placeholder="e.g. 20 or FLAT50"
-                      required
-                    />
-                    <Percent className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Max Discount (₹)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      min="0"
-                      value={formData.maxValue}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          maxValue: parseInt(e.target.value) || 0,
-                        })
-                      }
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                      placeholder="Optional max discount"
-                    />
-                    <IndianRupee className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Minimum Order (₹)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.minOrder}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        minOrder: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Expiry Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.expiryDate}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        expiryDate: e.target.value,
-                      })
-                    }
-                    min={new Date().toISOString().split("T")[0]}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    required
-                  />
-                </div>
-
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Create Coupon
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowForm(false)}
-                    className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Coupon List */}
       {coupons.length === 0 ? (
@@ -283,11 +169,9 @@ export const CouponManager: React.FC = () => {
                         <Percent className="w-3 h-3" />
                         <span>
                           {coupon.discount}
-                          {typeof coupon.discount === "number" ? "%" : ""}
-                          {" off"}
+                          {typeof coupon.discount === "number" ? "%" : ""} off
                         </span>
                       </span>
-
                       {coupon.maxValue !== undefined &&
                         coupon.maxValue > 0 && (
                           <span className="flex items-center space-x-1">
@@ -298,23 +182,33 @@ export const CouponManager: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDelete(coupon._id)}
-                  className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
-                  title="Delete coupon"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleToggle(coupon._id, coupon.enabled)}
+                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    title={coupon.enabled ? "Disable coupon" : "Enable coupon"}
+                  >
+                    {coupon.enabled ? (
+                      <ToggleRight className="w-6 h-6 text-green-500" />
+                    ) : (
+                      <ToggleLeft className="w-6 h-6 text-gray-400" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(coupon._id)}
+                    className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                    title="Delete coupon"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">Min. Order Value:</span>
-                  <span className="font-medium">
-                    ₹{coupon.minOrder}
-                  </span>
+                  <span className="font-medium">₹{coupon.minOrder}</span>
                 </div>
-
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600 flex items-center space-x-1">
                     <Calendar className="w-3 h-3" />

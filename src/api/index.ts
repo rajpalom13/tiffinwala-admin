@@ -84,7 +84,9 @@ export async function getMerchantsBalances() {
 }
 
 export async function getMerchantsUnsettledBalances() {
-  const { data } = await axios.get(`${BASE_MERCHANTS_URL}/merchants/unsettled-balances`);
+  const { data } = await axios.get(
+    `${BASE_MERCHANTS_URL}/merchants/unsettled-balances`
+  );
   return data;
 }
 
@@ -110,10 +112,7 @@ export async function settleAllTransactions(
   return data;
 }
 
-export async function updateMerchantUPI(
-  merchantId: string,
-  upi: string
-) {
+export async function updateMerchantUPI(merchantId: string, upi: string) {
   const { data } = await axios.put(
     `${BASE_MERCHANTS_URL}/merchant/${merchantId}/upi`,
     { upi }
@@ -186,5 +185,19 @@ export async function verifyOtp(phoneNumber: string, otp: string) {
     phoneNumber,
     otp,
   });
+  return data;
+}
+export async function toggleCouponStatus(id: string, enabled: boolean) {
+  const { data } = await axios.put(`${BASE_COUPON_URL}/${id}/status`, {
+    enabled,
+  });
+  return data;
+}
+
+export async function getCouponStatus(code: string, price?: number) {
+  const url = price
+    ? `${BASE_COUPON_URL}/status/${code}?price=${price}`
+    : `${BASE_COUPON_URL}/status/${code}`;
+  const { data } = await axios.get(url);
   return data;
 }
