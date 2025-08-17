@@ -12,7 +12,8 @@ const BASE_MERCHANT_MENU_URL = "https://api.sixty6foods.in";
 /** Latest normalized menu payload (raw catalog shape) */
 export async function getLatestMenu() {
   const { data } = await axios.get(`${BASE_MERCHANT_MENU_URL}/menu/latest`);
-  return data; // raw payload as-is (with image/inStock baked in)
+  //@ts-ignore
+  return data.data; // raw payload as-is (with image/inStock baked in)
 }
 
 /** Fetch from upstream and save a new snapshot */
