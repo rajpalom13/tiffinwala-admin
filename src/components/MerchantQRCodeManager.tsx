@@ -38,7 +38,7 @@ export const MerchantQRCodeManager: React.FC = () => {
     return `https://tiffinwala.page.link/?link=${encodeURIComponent(
       deep
     )}&apn=com.tiffinwala.app&ibi=com.tiffinwala.ios&ofl=${encodeURIComponent(
-      "https://play.google.com/store/apps/details?id=com.tiffinwala.app"
+      "https://play.google.com/store/apps/details?id=com.tiffinwala.tiffinwala"
     )}&efr=1`;
   };
 

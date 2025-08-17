@@ -13,6 +13,7 @@ import {
   DollarSign,
   RotateCw,
   LucideIcon,
+  List, // <-- NEW icon for Items
 } from "lucide-react";
 
 interface NavigationProps {
@@ -34,6 +35,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   const menuItems: MenuItem[] = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
+    { id: "items", label: "Items", icon: List }, // <-- NEW
     { id: "banners", label: "Banners", icon: Image },
     { id: "coupons", label: "Coupons", icon: Ticket },
     { id: "notifications", label: "Notifications", icon: Bell },

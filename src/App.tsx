@@ -11,6 +11,7 @@ import { MerchantSettlementManager } from "./components/MerchantSettlementManage
 import { MerchantQRCodeManager } from "./components/MerchantQRCodeManager";
 import { MerchantExtraSettlementManager } from "./components/ExtraMerchantSettlementManager";
 import { RefundSystem } from "./components/Loyalty";
+import { ItemsManager } from "./components/ItemsManager"; // <-- NEW
 
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -24,6 +25,8 @@ const AppContent: React.FC = () => {
     switch (activeTab) {
       case "dashboard":
         return <Dashboard />;
+      case "items":
+        return <ItemsManager />; // <-- NEW
       case "banners":
         return <BannerManager />;
       case "coupons":

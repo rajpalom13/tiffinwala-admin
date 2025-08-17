@@ -1,3 +1,4 @@
+// ===== Existing app-wide types =====
 export interface User {
   id: string;
   username: string;
@@ -43,8 +44,7 @@ export interface StoreSettings {
   closureReason?: string;
 }
 
-/** ✅ NEW: Merchant Interface **/
-
+/** Merchant */
 export interface Merchant {
   _id: string;
   merchantId: string;
@@ -57,4 +57,52 @@ export interface Merchant {
   qr?: string;
   transactions?: string[];
   joiningDate?: string;
+  extraPercentage?: number; // added to support edit % flow
+}
+
+// ===== NEW: Catalog types (for ItemsManager) =====
+
+export interface SchedulePrice {
+  scheduleId: string;
+  price: number;
+}
+
+export interface CatalogItem {
+  type: string; // "Simple" etc.
+  itemId: string;
+  skuCode?: string;
+  price?: number;
+  schedulePrices?: SchedulePrice[];
+  displayOrder?: number;
+  itemName: string;
+  description?: string;
+  measuringUnit?: string;
+  chargeIds?: string[];
+  taxTypeIds?: string[];
+  isPriceIncludesTax?: boolean;
+  denyDiscount?: boolean;
+  categoryId?: string;
+  subCategoryId?: string;
+  itemTagIds?: string[];
+  scheduleIds?: string[];
+  optionSetIds?: string[];
+  barCode?: string;
+  itemNature?: string; // "Goods"
+  status?: string; // "Active"
+  itemTaxCode?: string;
+  variantAttributes?: Array<{ name: string; values: string[] }>;
+  variantValues?: Array<{ name: string; value: string }>;
+  groupItemId?: string;
+
+  /** Added during normalization step on the server */
+  inStock?: boolean;
+  image?: string;
+
+  extraInfo?: Record<string, any>;
+}
+
+export interface CatalogPayload {
+  items: CatalogItem[];
+  // Keep other top-level keys flexible (couponProviders, categories, etc.)
+  [k: string]: any;
 }
