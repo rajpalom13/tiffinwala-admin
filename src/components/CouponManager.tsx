@@ -8,14 +8,16 @@ import {
   IndianRupee,
   ToggleLeft,
   ToggleRight,
-  X
+  X,
+  Pencil
 } from "lucide-react";
 import { Coupon } from "../types";
 import {
   getAllCoupons,
   createCoupon,
   deleteCoupon,
-  toggleCouponStatus
+  toggleCouponStatus,
+  updateCoupon
 } from "../api";
 
 type LocalFormData = {
@@ -30,6 +32,7 @@ export const CouponManager: React.FC = () => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<LocalFormData>({
     code: "",
     discount: "",
@@ -68,6 +71,7 @@ export const CouponManager: React.FC = () => {
   const closeForm = () => {
     setShowForm(false);
     setSubmitting(false);
+    setEditingId(null);
     resetForm();
   };
 
@@ -103,16 +107,26 @@ export const CouponManager: React.FC = () => {
     };
 
     try {
-      const res: any = await createCoupon(payload);
-      if (res?.status) {
-        closeForm();
-        await fetchCoupons();
+      if (editingId) {
+        const res: any = await updateCoupon(editingId, payload);
+        if (res?.status) {
+          closeForm();
+          await fetchCoupons();
+        } else {
+          alert(res?.message || "Failed to update coupon.");
+        }
       } else {
-        alert(res?.message || "Failed to create coupon.");
+        const res: any = await createCoupon(payload);
+        if (res?.status) {
+          closeForm();
+          await fetchCoupons();
+        } else {
+          alert(res?.message || "Failed to create coupon.");
+        }
       }
     } catch (err) {
       console.error(err);
-      alert("Error creating coupon.");
+      alert(editingId ? "Error updating coupon." : "Error creating coupon.");
     } finally {
       setSubmitting(false);
     }
@@ -149,6 +163,28 @@ export const CouponManager: React.FC = () => {
       console.error(err);
       alert("Failed to update status");
     }
+  };
+
+  const openEdit = (coupon: Coupon) => {
+    // convert expiry to yyyy-mm-dd for input[type="date"]
+    const d = new Date(coupon.expiryDate);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const iso = `${yyyy}-${mm}-${dd}`;
+
+    setEditingId(coupon._id);
+    setFormData({
+      code: coupon.code,
+      discount:
+        typeof coupon.discount === "number"
+          ? String(coupon.discount)
+          : String(coupon.discount || ""),
+      minOrder: coupon.minOrder || 0,
+      maxValue: coupon.maxValue || 0,
+      expiryDate: iso,
+    });
+    setShowForm(true);
   };
 
   const isExpired = (date: string | Date) => new Date(date) < new Date();
@@ -236,6 +272,13 @@ export const CouponManager: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
+                    onClick={() => openEdit(coupon)}
+                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    title="Edit coupon"
+                  >
+                    <Pencil className="w-5 h-5 text-blue-600" />
+                  </button>
+                  <button
                     onClick={() => handleToggle(coupon._id, coupon.enabled)}
                     className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                     title={coupon.enabled ? "Disable coupon" : "Enable coupon"}
@@ -301,7 +344,7 @@ export const CouponManager: React.FC = () => {
             >
               <div className="flex items-center justify-between px-6 py-4 border-b">
                 <h2 id="coupon-form-title" className="text-xl font-semibold">
-                  Create Coupon
+                  {editingId ? "Edit Coupon" : "Create Coupon"}
                 </h2>
                 <button
                   onClick={closeForm}
@@ -425,7 +468,13 @@ export const CouponManager: React.FC = () => {
                     className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
                     disabled={submitting}
                   >
-                    {submitting ? "Creating..." : "Create Coupon"}
+                    {submitting
+                      ? editingId
+                        ? "Updating..."
+                        : "Creating..."
+                      : editingId
+                      ? "Update Coupon"
+                      : "Create Coupon"}
                   </button>
                 </div>
               </form>

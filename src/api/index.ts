@@ -240,6 +240,22 @@ export async function getCouponStatus(code: string, price?: number) {
   return data;
 }
 
+/** NEW: update coupon by ID (PUT /coupon/:id) **/
+export async function updateCoupon(
+  id: string,
+  payload: {
+    code?: string;
+    discount?: number | string;
+    minOrder?: number;
+    maxValue?: number;
+    expiryDate?: Date;
+    enabled?: boolean;
+  }
+) {
+  const { data } = await axios.put(`${BASE_COUPON_URL}/${id}`, payload);
+  return data;
+}
+
 /** Types (kept here since you already had them in this file) **/
 export interface User {
   id: string;
