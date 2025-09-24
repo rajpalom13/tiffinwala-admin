@@ -303,7 +303,7 @@ export interface StoreSettings {
 }
 
 export async function deleteMerchant(id: string) {
-  const { data } = await axios.delete(`${BASE_MERCHANTS_URL}/merchant/${id}`);
+  const { data } = await axios.delete(`${BASE_MERCHANTS_URL}/merchant/merchant/${id}`);
   return data;
 }
 
