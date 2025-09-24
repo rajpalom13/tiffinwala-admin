@@ -302,6 +302,11 @@ export interface StoreSettings {
   closureReason?: string;
 }
 
+export async function deleteMerchant(id: string) {
+  const { data } = await axios.delete(`${BASE_MERCHANTS_URL}/merchant/${id}`);
+  return data;
+}
+
 /** Merchant (returned by /merchants/unsettled-balances) */
 export interface Merchant {
   _id: string;

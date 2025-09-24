@@ -3,8 +3,9 @@ import {
   getMerchantsUnsettledBalances,
   settleAllTransactions,
   updateMerchantUPI,
+  deleteMerchant, // ✅ NEW
 } from "../api";
-import { CheckCircle, RefreshCcw, Pencil } from "lucide-react";
+import { CheckCircle, RefreshCcw, Pencil, Trash2 } from "lucide-react"; // ✅ NEW
 
 export interface Merchant {
   _id: string;
@@ -20,27 +21,25 @@ export const MerchantSettlementManager: React.FC = () => {
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [loading, setLoading] = useState(false);
   const [settling, setSettling] = useState<string | null>(null);
-  const [settlementIds, setSettlementIds] = useState<Record<string, string>>(
-    {}
-  );
+  const [settlementIds, setSettlementIds] = useState<Record<string, string>>({});
   const [editingUPI, setEditingUPI] = useState<Record<string, string>>({});
   const [savingUPI, setSavingUPI] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [currentEditingMerchant, setCurrentEditingMerchant] =
     useState<Merchant | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null); // ✅ NEW
 
-const loadMerchants = async () => {
-  setLoading(true);
-  try {
-    const data: any = await getMerchantsUnsettledBalances();
-    setMerchants(data);
-  } catch (e) {
-    console.error(e);
-    alert("Failed to load merchants");
-  }
-  setLoading(false);
-};
-
+  const loadMerchants = async () => {
+    setLoading(true);
+    try {
+      const data: any = await getMerchantsUnsettledBalances();
+      setMerchants(data);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to load merchants");
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
     loadMerchants();
@@ -86,6 +85,26 @@ const loadMerchants = async () => {
     }
   };
 
+  // ✅ NEW: Delete merchant (by DB _id to match backend route)
+  const handleDeleteMerchant = async (merchant: Merchant) => {
+    const confirm = window.confirm(
+      `Delete merchant ${merchant.firstName} ${merchant.lastName} (${merchant.phone})?\nThis will also remove their OTP and unsettled transactions.`
+    );
+    if (!confirm) return;
+
+    try {
+      setDeletingId(merchant._id);
+      await deleteMerchant(merchant._id);
+      alert("Merchant deleted successfully.");
+      await loadMerchants();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to delete merchant.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-8">
@@ -118,40 +137,56 @@ const loadMerchants = async () => {
               key={merchant._id}
               className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-3"
             >
-              <div className="text-xl font-bold text-gray-900">
-                {merchant.firstName} {merchant.lastName}
+              <div className="flex items-start justify-between">
+                <div className="text-xl font-bold text-gray-900">
+                  {merchant.firstName} {merchant.lastName}
+                </div>
+
+                {/* Edit & Delete actions */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      setCurrentEditingMerchant(merchant);
+                      setEditingUPI((prev) => ({
+                        ...prev,
+                        [merchant.merchantId]: merchant.upi || "",
+                      }));
+                      setShowModal(true);
+                    }}
+                    className="text-green-600 hover:text-green-800"
+                    title="Edit UPI"
+                  >
+                    <Pencil className="w-5 h-5" />
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteMerchant(merchant)}
+                    className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                    disabled={deletingId === merchant._id}
+                    title="Delete merchant"
+                  >
+                    {deletingId === merchant._id ? (
+                      <span className="text-sm">Deleting…</span>
+                    ) : (
+                      <Trash2 className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
               </div>
+
               <div className="text-gray-700 text-sm">
-                Merchant ID:{" "}
-                <span className="font-mono">{merchant.merchantId}</span>
+                Merchant ID: <span className="font-mono">{merchant.merchantId}</span>
               </div>
               <div className="text-gray-700 text-sm">
                 Phone: <span className="font-mono">{merchant.phone}</span>
               </div>
               <div className="text-gray-700 text-sm">
                 Outstanding Balance:{" "}
-                <span className="text-red-600 font-bold">
-                  ₹ {merchant.outstanding}
-                </span>
+                <span className="text-red-600 font-bold">₹ {merchant.outstanding}</span>
               </div>
               <div className="text-gray-700 text-sm">
-                Current UPI ID:{" "}
-                <span className="font-mono">{merchant.upi || "—"}</span>
+                Current UPI ID: <span className="font-mono">{merchant.upi || "—"}</span>
               </div>
-
-              <button
-                onClick={() => {
-                  setCurrentEditingMerchant(merchant);
-                  setEditingUPI((prev) => ({
-                    ...prev,
-                    [merchant.merchantId]: merchant.upi || "",
-                  }));
-                  setShowModal(true);
-                }}
-                className="text-green-600 hover:text-green-800"
-              >
-                <Pencil className="w-5 h-5" />
-              </button>
 
               <div className="space-y-2 pt-4 border-t border-gray-200 mt-4">
                 <input
